@@ -4,7 +4,9 @@
 
 This script processes PageXML (Page Analysis and Ground-truth Elements) files and their corresponding JPG images to generate visualisations of text layout regions. The tool supports processing individual files or batch processing multiple files, along with options for generating statistics and recording the reading order sequence.
 
-![sample overlay](/sample-outputs/small-image.jpg)
+<p align="center">
+  <img src="/sample-outputs/small-image.jpg" alt="visualisation of pagexml text regions overlaid on the original scan">
+</p>
 
 ## Features
 
