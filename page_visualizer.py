@@ -4,30 +4,26 @@ PAGE Region Visualization Tool
 
 This script processes PAGE-format XML files and their corresponding JPG images to 
 visualize text regions with color-coded overlays. It supports processing single files 
-or batch processing with statistics generation. An optional feature (--record-sequence)
-records the reading order of layout regions into a TSV file.
+or batch processing with statistics on region counts and region sequences. In the visual overlays, the label now shows the region’s layout name along with its reading order number and the total number of regions (e.g. "header (1/8)").
 
-In the visual overlays, the label now shows the region’s layout name along with its 
-reading order number and the total number of regions (e.g. "header (1/8)").
-
-The TSV file (by default, region_sequence.tsv) now includes four columns:
-    - filename: The base name of the XML file.
-    - total_regions: Total count of regions in the XML.
-    - last_region: The layout name of the final region in the reading order.
-    - region_sequence: Comma-separated reading order (layout names).
+By default:
+    - In batch mode, the script creates two TSV files:
+          * region_counts.tsv: Contains statistics with columns:
+                filename, total_regions, and one count column per region type (e.g., count_header).
+          * region_sequences.tsv: Contains statistics with columns:
+                filename, total_regions, last_region, region_sequence (comma-separated layout names).
+    - In single file mode these files are not created unless the --stats option is provided.
 
 Usage:
     Single file:
-        python script.py <base_filename> [--font-size=48] [--record-sequence]
+        python page_visualizer.py <base_filename> [--font-size=48] [--stats]
     Batch mode:
-        python script.py --all [--no-overlays] [--record-sequence]
+        python page_visualizer.py --all [--font-size=48] [--no-overlays] [--no-stats]
 
 Note for batch mode:
-    - Custom font size and stats file options are not available. The default font size and 
-      default stats file (defined in Config) will always be used.
-    - The --no-overlays option prevents overlay images from being created.
-    - If --record-sequence is provided, a TSV file (default: region_sequence.tsv) is generated
-      with the reading order and additional columns.
+    - The script assumes that identically named PageXML and JPG scans will be present in the xml/ and images/ directories.
+    - Use the --no-overlays option to prevent overlay images from being created.
+    - Use the --no-stats option to suppress the default generation of region_counts.tsv and region_sequences.tsv.
 """
 
 import os
@@ -50,8 +46,8 @@ class Config:
     XML_DIR: Path = Path("xml")
     OUTPUT_DIR: Path = Path("output")
     DEFAULT_FONT_SIZE: int = 60
-    DEFAULT_STATS_FILE: str = "region_statistics.tsv"
-    DEFAULT_SEQUENCE_FILE: str = "region_sequence.tsv"  # File for region sequence data
+    DEFAULT_STATS_FILE: str = "region_counts.tsv"
+    DEFAULT_SEQUENCE_FILE: str = "region_sequences.tsv"  # File for region sequence data
     
     # Region type color mapping
     REGION_COLORS: Dict[str, str] = field(default_factory=lambda: {
@@ -191,7 +187,9 @@ class RegionProcessor:
     def _draw_region(self, draw: ImageDraw.Draw, points: List[Tuple[int, int]], 
                      fill_color: Tuple[int, ...], outline_color: Tuple[int, ...], 
                      region_type: str, reading_order: Optional[int], total_regions: int) -> None:
-        draw.polygon(points, fill=fill_color, outline=outline_color)
+        # Draw filled polygon without an outline
+        draw.polygon(points, fill=fill_color)
+        # Draw thicker outline by drawing lines between points
         for i in range(len(points)):
             start = points[i]
             end = points[(i + 1) % len(points)]
@@ -238,8 +236,7 @@ class PageVisualizer:
                 logging.warning(f"Could not create directory {dir_path}")
         
     def process_file(self, base_name: str, font_size: int, 
-                     collect_stats: bool = False, create_overlay: bool = True,
-                     record_sequence: bool = False) -> Tuple[bool, Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+                     collect_stats: bool = False, create_overlay: bool = True) -> Tuple[bool, Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
         image_path = self.config.IMAGES_DIR / f"{base_name}.jpg"
         xml_path = self.config.XML_DIR / f"{base_name}.xml"
         
@@ -265,9 +262,8 @@ class PageVisualizer:
             
             stats = self._collect_statistics(regions, base_name) if collect_stats else None
 
-            sequence = None
-            if record_sequence:
-                sequence = self.extract_region_sequence(root, namespace)
+            # Always extract the region sequence
+            sequence = self.extract_region_sequence(root, namespace)
                 
             return True, stats, sequence
             
@@ -356,42 +352,24 @@ class PageVisualizer:
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Process PAGE XML files and generate region visualizations and/or record reading order."
+        description="Process PAGE XML files and generate region visualizations, statistics, and reading order files."
     )
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('base_name', nargs='?', help="Base name of the files to process")
-    group.add_argument('--all', action='store_true', help="Process all XML files in the directory")
-    
-    # In batch mode, do not allow custom font size.
+    group.add_argument("base_name", nargs="?", help="Base name of the file to process")
+    group.add_argument("--all", action="store_true", help="Process all XML files in the directory")
+    # Allow custom font size for both modes.
+    parser.add_argument("--font-size", type=int, default=Config.DEFAULT_FONT_SIZE,
+                        help=f"Font size for region labels (default: {Config.DEFAULT_FONT_SIZE})")
+    # In batch mode add options for overlays and statistics; otherwise, add --stats.
     if '--all' in sys.argv:
-        parser.add_argument('--no-overlays', action='store_true', help="Do not create overlay images")
+        parser.add_argument("--no-overlays", action="store_true", help="Do not create overlay images")
+        parser.add_argument("--no-stats", action="store_true", help="Do not create region_counts.tsv and region_sequences.tsv files")
     else:
-        parser.add_argument('--font-size', type=int, default=Config.DEFAULT_FONT_SIZE,
-                            help=f"Font size for region labels (default: {Config.DEFAULT_FONT_SIZE})")
-    
-    # New flag to record region sequence.
-    parser.add_argument('--record-sequence', action='store_true',
-                        help="Record the sequence of region elements (reading order) into a TSV file using layout region names")
-    
+        parser.add_argument("--stats", action="store_true", help="Generate region_counts.tsv and region_sequences.tsv files")
     return parser.parse_args()
 
 
-def process_file_process(base_name: str, args: argparse.Namespace, config: Config) -> Tuple[bool, Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
-    """
-    Process a single file in a separate process.
-    A new PageVisualizer is created here to avoid pickling issues.
-    """
-    visualizer = PageVisualizer(config)
-    # In batch mode, use the default font size since the custom option is not available.
-    font_size = config.DEFAULT_FONT_SIZE
-    # Determine whether to create overlays based on --no-overlays.
-    create_overlay = True
-    if hasattr(args, 'no_overlays'):
-        create_overlay = not args.no_overlays
-    return visualizer.process_file(base_name, font_size, True, create_overlay, record_sequence=args.record_sequence)
-
-
-def generate_stats_file(stats_data: List[Dict[str, Any]], filename: str, config: Config) -> None:
+def generate_stats_file(stats_data: List[Dict[str, Any]], filename: str, config: Config, silent: bool = False) -> None:
     output_path = config.OUTPUT_DIR / filename
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
@@ -409,12 +387,13 @@ def generate_stats_file(stats_data: List[Dict[str, Any]], filename: str, config:
                     str(stat['total_regions'])
                 ] + [str(stat['region_counts'].get(type_, 0)) for type_ in sorted_region_types]
                 f.write('\t'.join(row) + '\n')
-        logging.info(f"Statistics written to {output_path}")
+        if not silent:
+            logging.info(f"Statistics written to {output_path}")
     except Exception as e:
         logging.error(f"Error writing statistics: {e}")
 
 
-def generate_sequence_file(sequence_data: List[Dict[str, Any]], filename: str, config: Config) -> None:
+def generate_sequence_file(sequence_data: List[Dict[str, Any]], filename: str, config: Config, silent: bool = False) -> None:
     output_path = config.OUTPUT_DIR / filename
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
@@ -432,13 +411,28 @@ def generate_sequence_file(sequence_data: List[Dict[str, Any]], filename: str, c
                     sequence_str
                 ]
                 f.write('\t'.join(row) + '\n')
-        logging.info(f"Region sequence data written to {output_path}")
+        if not silent:
+            logging.info(f"Region sequence data written to {output_path}")
     except Exception as e:
         logging.error(f"Error writing region sequence data: {e}")
 
 
+def process_file_process(base_name: str, args: argparse.Namespace, config: Config) -> Tuple[bool, Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+    """
+    Process a single file in a separate process.
+    A new PageVisualizer is created here to avoid pickling issues.
+    """
+    visualizer = PageVisualizer(config)
+    # Allow font size to be set from arguments in both modes.
+    font_size = args.font_size
+    # Determine whether to create overlays based on --no-overlays.
+    create_overlay = not getattr(args, "no_overlays", False)
+    return visualizer.process_file(base_name, font_size, True, create_overlay)
+
+
 def process_all_files(visualizer: PageVisualizer, args: argparse.Namespace) -> None:
-    xml_files = list(visualizer.config.XML_DIR.glob('*.xml'))
+    # Sort the xml files alphabetically as in ls
+    xml_files = sorted(visualizer.config.XML_DIR.glob('*.xml'), key=lambda f: f.name)
     if not xml_files:
         logging.error("No XML files found.")
         sys.exit(1)
@@ -463,8 +457,7 @@ def process_all_files(visualizer: PageVisualizer, args: argparse.Namespace) -> N
                     success_count += 1
                     if stats:
                         stats_data.setdefault("data", []).append(stats)
-                    if args.record_sequence and sequence is not None:
-                        # 'sequence' is a dict with keys: region_sequence, total_regions, last_region
+                    if sequence is not None:
                         sequence_data.append({
                             'filename': futures[future].stem,
                             'total_regions': sequence['total_regions'],
@@ -472,28 +465,40 @@ def process_all_files(visualizer: PageVisualizer, args: argparse.Namespace) -> N
                             'region_sequence': sequence['region_sequence']
                         })
     
+    # Sort the results by filename so they appear in the same order as ls.
+    if "data" in stats_data:
+        stats_data["data"].sort(key=lambda x: x["filename"])
+    if sequence_data:
+        sequence_data.sort(key=lambda x: x["filename"])
+    
     logging.info(f"Processed {success_count} of {len(xml_files)} files successfully")
     
-    # Generate statistics file.
-    if "data" in stats_data:
-        generate_stats_file(stats_data["data"], visualizer.config.DEFAULT_STATS_FILE, visualizer.config)
-    # Generate region sequence file if requested.
-    if args.record_sequence and sequence_data:
-        generate_sequence_file(sequence_data, visualizer.config.DEFAULT_SEQUENCE_FILE, visualizer.config)
+    if not args.no_stats:
+        # Generate statistics file.
+        if "data" in stats_data:
+            generate_stats_file(stats_data["data"], visualizer.config.DEFAULT_STATS_FILE, visualizer.config)
+        # Generate region sequence file.
+        if sequence_data:
+            generate_sequence_file(sequence_data, visualizer.config.DEFAULT_SEQUENCE_FILE, visualizer.config)
 
 
 def process_single_file(visualizer: PageVisualizer, args: argparse.Namespace) -> None:
-    font_size = args.font_size  # Available only in single file mode.
-    success, _, sequence = visualizer.process_file(args.base_name, font_size, collect_stats=True, create_overlay=True, record_sequence=args.record_sequence)
+    font_size = args.font_size  # Available in single file mode.
+    success, stats, sequence = visualizer.process_file(args.base_name, font_size, collect_stats=True, create_overlay=True)
     if success:
+        if args.stats:
+            if stats:
+                generate_stats_file([stats], visualizer.config.DEFAULT_STATS_FILE, visualizer.config, silent=True)
+            if sequence is not None:
+                generate_sequence_file([{
+                    'filename': args.base_name,
+                    'total_regions': sequence['total_regions'],
+                    'last_region': sequence['last_region'],
+                    'region_sequence': sequence['region_sequence']
+                }], visualizer.config.DEFAULT_SEQUENCE_FILE, visualizer.config, silent=True)
         logging.info("Processing complete")
-        if args.record_sequence and sequence is not None:
-            generate_sequence_file([{
-                'filename': args.base_name,
-                'total_regions': sequence['total_regions'],
-                'last_region': sequence['last_region'],
-                'region_sequence': sequence['region_sequence']
-            }], visualizer.config.DEFAULT_SEQUENCE_FILE, visualizer.config)
+        if args.stats:
+            logging.info("Statistics written to output/region_counts.tsv and output/region_sequences.tsv")
     else:
         logging.error("Processing failed")
         sys.exit(1)

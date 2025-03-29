@@ -2,7 +2,7 @@
 
 ## Overview
 
-This script processes PageXML (Page Analysis and Ground-truth Elements) files and their corresponding JPG images to generate visualisations of text layout regions. The tool supports processing individual files or batch processing multiple files, along with options for generating statistics and recording the reading order sequence.
+This script processes [PageXML](https://github.com/PRImA-Research-Lab/PAGE-XML) (Page Analysis and Ground-truth Elements) files and their corresponding JPG images to generate visualisations of text layout regions. The tool supports processing individual files or batch processing multiple files, along with options for generating statistics and recording the reading order sequence.
 
 <p align="center">
   <img src="/sample-outputs/small-image.jpg" alt="visualisation of pagexml text regions overlaid on the original scan">
@@ -12,10 +12,10 @@ This script processes PageXML (Page Analysis and Ground-truth Elements) files an
 ## Features
 
 * **Visualise PageXML Regions:** Draws coloured rectangles (or polygons, if present) on JPG images corresponding to `<TextRegion>` elements in PageXML files. Uses distinct colours for different region types (header, paragraph, catch-word, page-number, marginalia, signature-mark) with a default fallback colour.
-* **Labels:** Displays the region type, reading order index, and total region count directly on the visualisation.
+* **Region Labels:** Displays the region type, reading order index, and total region count directly on the visualisation.
 * **Single File Processing:** Process a specific XML/JPG pair. Allows customisation of the label font size.
 * **Batch Processing:** Process all XML and JPG files. Uses multiprocessing for efficiency. Allows skipping the generation of overlay images if only the statistics are needed.
-* **Statistics:** In batch mode, creates a TSV file (`output/region_statistics.tsv`) summarising the count of each region type per file. Optionally creates an separate TSV file (`output/region_sequence.tsv`) detailing the reading order using layout region names, total region count, and the last region in the sequence for each processed file.
+* **Statistics:** Creates a TSV file (`region_counts.tsv`) summarising the count of each region type per file and a TSV file (`oregion_sequences.tsv`) detailing the reading order using layout region names, total region count, and the last region in the sequence for each processed file. 
 
 ## Directory Structure
 
@@ -34,8 +34,8 @@ your_project_directory/
 ├── output/                 # Output directory (created automatically)
 │   ├── example1_overlay.jpg  # Generated overlay image
 │   ├── example2_overlay.jpg
-│   ├── region_statistics.tsv # Optional statistics file (batch mode)
-│   └── region_sequence.tsv   # Optional reading sequence file
+│   ├── region_counts.tsv # Optional statistics file (batch mode)
+│   └── region_sequences.tsv   # Optional reading sequence file
 └── page_visualizer.py      # The script itself (or your chosen name)
 ```
 
@@ -96,7 +96,7 @@ python page_visualizer.py <base_filename> [options]
 
 * `<base_filename>`: The name of the file pair to process, without the extension (e.g., example1).
 * `--font-size <size>`: (Optional) Specify the font size for region labels (default is 60). Note: Only available in single file mode.
-* `--record-sequence`: (Optional) Generate the region_sequence.tsv file for this single entry.
+* `--stats`: (Optional) Generate region_counts.tsv and sequence_counts.tsv files for this single entry.
 
 #### Example:
 
@@ -107,8 +107,8 @@ python page_visualizer.py example1
 # Process 'document_abc.xml' and 'document_abc.jpg' with font size 48
 python page_visualizer.py document_abc --font-size 48
 
-# Process 'example1.xml' and record its reading sequence
-python page_visualizer.py example1 --record-sequence
+# Process 'example1.xml' and generate statistics on its region counts and sequences
+python page_visualizer.py example1 --stats
 ```
 
 ### 2. Process All Files (Batch Mode):
@@ -117,9 +117,9 @@ python page_visualizer.py example1 --record-sequence
 python page_visualizer.py --all [options]
 ```
 
-* `--all`: Process all .xml files found in the xml/ directory and their corresponding .jpg files in images/. Generates output/region_statistics.tsv by default.
-* `--no-overlays`: (Optional) Skip the creation of overlay .jpg images in the output/ directory. Useful if you only need the statistics or sequence TSV.
-* `--record-sequence`: (Optional) Generate the region_sequence.tsv file containing the reading order for all processed files.
+* `--all`: Process all .xml files found in the xml/ directory and their corresponding .jpg files in images/. Generates output/region_counts.tsv and output/region_sequences.tsv files by default.
+* `--no-overlays`: (Optional) Skip the creation of overlay .jpg images in the output/ directory. Useful if you only need the statistics TSV files.
+* `--no-stats`: (Optional) Do not generate region_counts.tsv and region_sequences.tsv with statistics on the processed XML files.
 
 #### Examples:
 
@@ -130,21 +130,17 @@ python page_visualizer.py --all
 # Process all files, generate statistics TSV, but do not create overlay images
 python page_visualizer.py --all --no-overlays
 
-# Process all files, create overlays, generate statistics TSV, and generate sequence TSV
-python page_visualizer.py --all --record-sequence
-
-# Process all files, generate only the statistics and sequence TSVs (no image overlays)
-python page_visualizer.py --all --no-overlays --record-sequence
+# Process all files, do not generate statistics files
+python page_visualizer.py --all --no-stats
 ```
 
 ## Output Files
 
 * **Overlay Images** (`*_overlay.jpg`): Located in the `output/` directory. These are copies of the input JPGs with coloured polygons and labels drawn over the text regions. Generated unless `--no-overlays` is used in batch mode.
-* **Region Statistics File** (`region_statistics.tsv`): Located in `output/`. Generated only in batch mode (`--all`). A tab-separated file with columns:
+* **Region Statistics File** (`region_counts.tsv`): Located in `output/`. Generated by default in batch mode (`--all`). A tab-separated file with columns:
   * `filename`: The base name of the processed file.
   * `total_regions`: The total number of `<TextRegion>` elements found.
-  * `count_<region_type>`: Columns for each unique region type found across all files (e.g., `count_paragraph`, `count_header`), showing the count for that file.
-* **Sequence File** (`region_sequence.tsv`): Located in `output/`. Generated when `--record-sequence` is used. A tab-separated file with columns:
+  * `count_<region_type>`: Columns for each unique region type found across all files (e.g., `count_paragraph`, `count_header`), showing the count for that file. (`region_sequences.tsv`): Located in `output/`. Generated by default in batch mode (`--all`). A tab-separated file with columns:
   * `filename`: The base name of the processed file.
   * `total_regions`: Total count of `<TextRegion>` elements in the XML.
   * `last_region`: The layout name (type) of the final region in the reading order.
