@@ -4,7 +4,9 @@ PAGE Region Visualization Tool
 
 This script processes PAGE-format XML files and their corresponding JPG images to 
 visualize text regions with color-coded overlays. It supports processing single files 
-or batch processing with statistics on region counts and region sequences. In the visual overlays, the label now shows the region’s layout name along with its reading order number and the total number of regions (e.g. "header (1/8)").
+or batch processing with statistics on region counts and region sequences. In the visual overlays, 
+the label now shows the region’s layout name along with its reading order number and the total number 
+of regions (e.g. "header (1/8)").
 
 By default:
     - In batch mode, the script creates two TSV files:
@@ -16,9 +18,9 @@ By default:
 
 Usage:
     Single file:
-        python page_visualizer.py <base_filename> [--font-size=48] [--stats]
+        python page_visualizer_fixed.py <base_filename> [--font-size=48] [--stats]
     Batch mode:
-        python page_visualizer.py --all [--font-size=48] [--no-overlays] [--no-stats]
+        python page_visualizer_fixed.py --all [--font-size=48] [--no-overlays] [--no-stats]
 
 Note for batch mode:
     - The script assumes that identically named PageXML and JPG scans will be present in the xml/ and images/ directories.
@@ -45,7 +47,7 @@ class Config:
     IMAGES_DIR: Path = Path("images")
     XML_DIR: Path = Path("xml")
     OUTPUT_DIR: Path = Path("output")
-    DEFAULT_FONT_SIZE: int = 60
+    DEFAULT_FONT_SIZE: int = 48
     DEFAULT_STATS_FILE: str = "region_counts.tsv"
     DEFAULT_SEQUENCE_FILE: str = "region_sequences.tsv"  # File for region sequence data
     
@@ -151,13 +153,16 @@ class RegionProcessor:
         overlay = Image.new("RGBA", image_size, (0, 0, 0, 0))
         draw = ImageDraw.Draw(overlay)
         total_regions = len(regions)
-        for region in regions:
-            self._process_region(draw, region, namespace, total_regions)
+        # Iterate with an index so that if reading order info is missing, we use the region's position.
+        for idx, region in enumerate(regions, start=1):
+            reading_order = RegionProcessor.extract_reading_order(region)
+            if reading_order is None:
+                reading_order = idx
+            self._process_region(draw, region, namespace, total_regions, reading_order)
         return overlay
 
-    def _process_region(self, draw: ImageDraw.Draw, region: ET.Element, namespace: Dict[str, str], total_regions: int) -> None:
+    def _process_region(self, draw: ImageDraw.Draw, region: ET.Element, namespace: Dict[str, str], total_regions: int, reading_order: int) -> None:
         region_type = RegionProcessor.get_region_type(region)
-        reading_order = RegionProcessor.extract_reading_order(region)
         base_color = self.config.REGION_COLORS.get(region_type, self.config.DEFAULT_COLOR)
         try:
             rgb = ImageColor.getrgb(base_color)
@@ -186,7 +191,7 @@ class RegionProcessor:
 
     def _draw_region(self, draw: ImageDraw.Draw, points: List[Tuple[int, int]], 
                      fill_color: Tuple[int, ...], outline_color: Tuple[int, ...], 
-                     region_type: str, reading_order: Optional[int], total_regions: int) -> None:
+                     region_type: str, reading_order: int, total_regions: int) -> None:
         # Draw filled polygon without an outline
         draw.polygon(points, fill=fill_color)
         # Draw thicker outline by drawing lines between points
@@ -208,10 +213,8 @@ class RegionProcessor:
                            reading_order: Optional[int], total_regions: int) -> None:
         center_x = sum(p[0] for p in points) // len(points)
         center_y = sum(p[1] for p in points) // len(points)
-        if reading_order is not None:
-            label = f"{label_text} ({reading_order}/{total_regions})"
-        else:
-            label = f"{label_text}"
+        # Always append the reading order info (reading_order should always be set at this point)
+        label = f"{label_text} ({reading_order}/{total_regions})"
         offsets = [(-2, -2), (-2, 0), (-2, 2), (0, -2), (0, 2), (2, -2), (2, 0), (2, 2)]
         for offset_x, offset_y in offsets:
             draw.text((center_x + offset_x, center_y + offset_y), label, font=self.font, fill=(0, 0, 0, 255))
