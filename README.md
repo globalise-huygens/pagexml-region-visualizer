@@ -108,7 +108,6 @@ python page_visualizer.py example1 --record-sequence
 
 ### 2. Process All Files (Batch Mode):
 
-Using Python directly:
 ```bash
 python page_visualizer.py --all [options]
 ```
