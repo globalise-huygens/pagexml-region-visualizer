@@ -4,6 +4,8 @@
 
 This script processes PageXML (Page Analysis and Ground-truth Elements) files and their corresponding JPG images to generate visualisations of text layout regions. The tool supports processing individual files or batch processing multiple files, along with options for generating statistics and recording the reading order sequence.
 
+![sample overlay](/sample-outputs/NL-HaNA_1.04.02_1153_0563_overlay.jpg)
+
 ## Features
 
 * **Visualise PageXML Regions:** Draws coloured rectangles (or polygons, if present) on JPG images corresponding to `<TextRegion>` elements in PageXML files. Uses distinct colours for different region types (header, paragraph, catch-word, page-number, marginalia, signature-mark) with a default fallback colour.
