@@ -81,18 +81,12 @@ your_project_directory/
 
 ## Usage
 
-Run the script from your project directory where the `images/`, `xml/`, and script file reside. You can use either Python directly or `uv run` to execute the script.
+Run the script from your project directory where the `images/`, `xml/`, and script file reside. You can use either Python directly or `uv run <script> <base_filename> [options]` to execute the script.
 
 ### 1. Process a Single File:
 
-Using Python directly:
 ```bash
 python page_visualizer.py <base_filename> [options]
-```
-
-Using `uv run`:
-```bash
-uv run page_visualizer.py <base_filename> [options]
 ```
 
 * `<base_filename>`: The name of the file pair to process, without the extension (e.g., example1).
@@ -104,18 +98,12 @@ uv run page_visualizer.py <base_filename> [options]
 ```bash
 # Process 'example1.xml' and 'example1.jpg' with default font size
 python page_visualizer.py example1
-# Or using uv:
-uv run page_visualizer.py example1
 
 # Process 'document_abc.xml' and 'document_abc.jpg' with font size 48
 python page_visualizer.py document_abc --font-size 48
-# Or using uv:
-uv run page_visualizer.py document_abc --font-size 48
 
 # Process 'example1.xml' and record its reading sequence
 python page_visualizer.py example1 --record-sequence
-# Or using uv:
-uv run page_visualizer.py example1 --record-sequence
 ```
 
 ### 2. Process All Files (Batch Mode):
@@ -123,11 +111,6 @@ uv run page_visualizer.py example1 --record-sequence
 Using Python directly:
 ```bash
 python page_visualizer.py --all [options]
-```
-
-Using `uv run`:
-```bash
-uv run page_visualizer.py --all [options]
 ```
 
 * `--all`: Process all .xml files found in the xml/ directory and their corresponding .jpg files in images/. Generates output/region_statistics.tsv by default.
@@ -139,23 +122,15 @@ uv run page_visualizer.py --all [options]
 ```bash
 # Process all files, create overlays, and generate statistics TSV
 python page_visualizer.py --all
-# Or using uv:
-uv run page_visualizer.py --all
 
 # Process all files, generate statistics TSV, but do not create overlay images
 python page_visualizer.py --all --no-overlays
-# Or using uv:
-uv run page_visualizer.py --all --no-overlays
 
 # Process all files, create overlays, generate statistics TSV, and generate sequence TSV
 python page_visualizer.py --all --record-sequence
-# Or using uv:
-uv run page_visualizer.py --all --record-sequence
 
 # Process all files, generate only the statistics and sequence TSVs (no image overlays)
 python page_visualizer.py --all --no-overlays --record-sequence
-# Or using uv:
-uv run page_visualizer.py --all --no-overlays --record-sequence
 ```
 
 ## Output Files
@@ -178,27 +153,3 @@ Default settings like directory names (images, xml, output), region colours, def
 ## Credits
 
 Original version of the script written by Gavin Lip. Further additions and refinements prompted by Arno Bosse and implemented by Claude Sonnet 3.7 and OpenAI o3-mini-high.
-
-## License
-
-MIT License
-
-Copyright (c) [2025] [PageXML Region Visualizer]
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
