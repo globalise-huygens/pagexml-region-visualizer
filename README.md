@@ -98,7 +98,7 @@ python page_visualizer.py <base_filename> [options]
 * `--font-size <size>`: (Optional) Specify the font size for region labels (default is 60). Note: Only available in single file mode.
 * `--stats`: (Optional) Generate region_counts.tsv and sequence_counts.tsv files for this single entry.
 
-#### Example:
+#### Examples:
 
 ```bash
 # Process 'example1.xml' and 'example1.jpg' with default font size
