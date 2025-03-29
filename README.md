@@ -6,6 +6,7 @@ This script processes PageXML (Page Analysis and Ground-truth Elements) files an
 
 <p align="center">
   <img src="/sample-outputs/small-image.jpg" alt="visualisation of pagexml text regions overlaid on the original scan">
+  <br><em>NL-HaNA_1.04.02_1153_0563</em>
 </p>
 
 ## Features
