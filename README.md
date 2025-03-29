@@ -1,4 +1,4 @@
-# PageXML Text Region Visualiser
+# PageXML Region Visualizer
 
 ## Overview
 
@@ -185,7 +185,7 @@ Original version of the script written by Gavin Lip. Further additions and refin
 
 MIT License
 
-Copyright (c) [2025] [PAGE Region Visualisation Tool]
+Copyright (c) [2025] [PageXML Region Visualizer]
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
