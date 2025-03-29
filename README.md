@@ -6,13 +6,11 @@ This script processes PageXML (Page Analysis and Ground-truth Elements) files an
 
 ## Features
 
-* **Visualise PageXML Regions:** Draws coloured polygons on JPG images corresponding to `<TextRegion>` elements in PageXML files.
-* **Colour-Coded Regions:** Uses distinct colours for different region types (header, paragraph, catch-word, page-number, marginalia, signature-mark) with a default fallback colour. Colours are configurable within the script.
-* **Informative Labels:** Displays the region type, reading order index, and total region count directly on the visualisation.
+* **Visualise PageXML Regions:** Draws coloured rectangles (or polygons, if present) on JPG images corresponding to `<TextRegion>` elements in PageXML files. Uses distinct colours for different region types (header, paragraph, catch-word, page-number, marginalia, signature-mark) with a default fallback colour.
+* **Labels:** Displays the region type, reading order index, and total region count directly on the visualisation.
 * **Single File Processing:** Process a specific XML/JPG pair. Allows customisation of the label font size.
-* **Batch Processing:** Process all XML and JPG files. Uses multiprocessing for efficiency. In batch mode, allows skipping the generation of overlay images if only the statistics or reading sequence are needed.
-* **Statistics and Reading Sequence:** In batch mode, creates a TSV file (`output/region_statistics.tsv`) summarising the count of each region type per file. Optionally creates an separate TSV file (`output/region_sequence.tsv`) detailing the reading order using layout region names, total region count, and the last region in the sequence for each processed file.
-* **Automatic Font Selection:** Attempts to find common TrueType fonts (Arial, DejaVuSans, etc.) and falls back to a default PIL font if necessary.
+* **Batch Processing:** Process all XML and JPG files. Uses multiprocessing for efficiency. Allows skipping the generation of overlay images if only the statistics are needed.
+* **Statistics:** In batch mode, creates a TSV file (`output/region_statistics.tsv`) summarising the count of each region type per file. Optionally creates an separate TSV file (`output/region_sequence.tsv`) detailing the reading order using layout region names, total region count, and the last region in the sequence for each processed file.
 
 ## Directory Structure
 
@@ -51,7 +49,7 @@ your_project_directory/
 2. **Set up Input:** Place your `.jpg` files in the `images/` directory and corresponding `.xml` files in the `xml/` directory.
 3. **Install Dependencies:** The only external dependency is `Pillow` (the PIL fork). Choose one of the following methods:
 
-   **Method 1: Using `pip` (Standard)**
+   **Method 1: Using `pip`**
 
    It's highly recommended to use a virtual environment:
 
@@ -69,7 +67,7 @@ your_project_directory/
    pip install Pillow
    ```
 
-   **Method 2: Using `uv` (Faster Alternative)**
+   **Method 2: Using `uv`**
 
    If you have `uv` installed:
 
@@ -163,7 +161,7 @@ uv run page_visualizer.py --all --no-overlays --record-sequence
 ## Output Files
 
 * **Overlay Images** (`*_overlay.jpg`): Located in the `output/` directory. These are copies of the input JPGs with coloured polygons and labels drawn over the text regions. Generated unless `--no-overlays` is used in batch mode.
-* **Statistics File** (`region_statistics.tsv`): Located in `output/`. Generated only in batch mode (`--all`). A tab-separated file with columns:
+* **Region Statistics File** (`region_statistics.tsv`): Located in `output/`. Generated only in batch mode (`--all`). A tab-separated file with columns:
   * `filename`: The base name of the processed file.
   * `total_regions`: The total number of `<TextRegion>` elements found.
   * `count_<region_type>`: Columns for each unique region type found across all files (e.g., `count_paragraph`, `count_header`), showing the count for that file.
