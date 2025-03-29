@@ -34,8 +34,8 @@ your_project_directory/
 ├── output/                 # Output directory (created automatically)
 │   ├── example1_overlay.jpg  # Generated overlay image
 │   ├── example2_overlay.jpg
-│   ├── region_counts.tsv # Optional statistics file (batch mode)
-│   └── region_sequences.tsv   # Optional reading sequence file
+│   ├── region_counts.tsv # Optional region counts file (default in batch mode)
+│   └── region_sequences.tsv   # Optional reading sequence file (default in batch mode)
 └── page_visualizer.py      # The script itself (or your chosen name)
 ```
 
