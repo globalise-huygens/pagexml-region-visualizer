@@ -6,7 +6,7 @@ This script processes [PageXML](https://github.com/PRImA-Research-Lab/PAGE-XML) 
 
 <p align="center">
   <img src="small-image.jpg" alt="visualisation of labelled pagexml text regions overlaid on the original scan">
-  <br><em>NL-HaNA_1.04.02_7876_0136</em>
+  <br><em>NL-HaNA_1.04.02_1120_0710</em>
 </p>
 
 ## Features
@@ -73,8 +73,6 @@ your_project_directory/
 
    **Method 2: Using `uv`**
 
-   If you have `uv` installed:
-
    ```bash
    # Create and activate a virtual environment using uv
    uv venv
@@ -136,13 +134,13 @@ python page_visualizer.py --all --no-stats
 ## Output Files
 
 * **Overlay Images** (`*_overlay.jpg`): These are copies of the input JPGs with coloured polygons and labels drawn over the text regions showing their position in the reading order index. 
-* **Region Statistics Files**
+* **Region Statistics**
   * (`region_counts.tsv`): A tab-separated file with columns: `filename`: The base name of the processed file.`total_regions`: The total number of <TextRegion> elements found. `count_<region_type>`: Columns for each unique region type found across all files (e.g., `count_paragraph`, `count_header`), showing the count for that file.
   * (`region_sequences.tsv`): A tab-separated file with columns: `filename`: The base name of the processed file. `total_regions`: Total count of <TextRegion> elements in the XML. `last_region`: The layout name (type) of the final region in the reading order. `region_sequence`: Comma-separated list of region layout names (types) in their reading order.
 
 ## Configuration
 
-Default settings like directory names (images, xml, output), region colours, default font size, and output filenames are defined in the Config dataclass within the script. Modify these defaults directly in the script if needed.
+Default settings like directory names (images, xml, output), region colours, default font size, and output filenames can be modified directly in the script if needed.
 
 ## Credits
 
