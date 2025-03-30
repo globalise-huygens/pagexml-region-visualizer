@@ -17,7 +17,7 @@ This script processes [PageXML](https://github.com/PRImA-Research-Lab/PAGE-XML) 
 * **Region Labels:** Displays the region type, reading order index, and total region count directly on the visualisation.
 * **Single File Processing:** Process a specific XML/JPG pair. Allows customisation of the label font size.
 * **Batch Processing:** Process all XML and JPG files. Uses multiprocessing for efficiency. Allows skipping the generation of overlay images if only the statistics are needed.
-* **Statistics:** Creates a TSV file (`region_counts.tsv`) summarising the total and count of each region type and a TSV file (`oregion_sequences.tsv`) detailing the reading order using layout region names, total region count, and the last region in the sequence for each processed XML file. 
+* **Statistics:** Creates two TSV files, one (`region_counts.tsv`) summarising the total and count of each region type and a second (`region_sequences.tsv`) detailing the reading order, total region count, and the last region in the sequence for each processed XML file. 
 
 ## Directory Structure
 
