@@ -5,8 +5,10 @@
 This script processes [PageXML](https://github.com/PRImA-Research-Lab/PAGE-XML) (Page Analysis and Ground-truth Elements) files and their corresponding JPG images to generate visualisations of text layout regions. The tool supports processing individual files or batch processing multiple files, along with options for generating statistics and recording the reading order sequence.
 
 <p align="center">
-  <img src="small-image.jpg" alt="visualisation of labelled pagexml text regions overlaid on the original scan">
-  <br><em>NL-HaNA_1.04.02_1120_0710</em>
+  <a href="https://github.com/globalise-huygens/pagexml-region-visualizer/blob/main/sample-outputs/NL-HaNA_1.04.02_1120_0710_overlay.jpg">
+    <img src="small-image.jpg" alt="visualisation of labelled pagexml text regions overlaid on the original scan">
+  </a>
+  <br><em><a href="https://transcriptions.globalise.huygens.knaw.nl/detail/urn:globalise:NL-HaNA_1.04.02_1120_0710">NL-HaNA_1.04.02_1120_0710</a></em>
 </p>
 
 ## Features
